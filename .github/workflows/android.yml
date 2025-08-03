@@ -32,15 +32,31 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Install Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+      - name: Locate package.json
+        id: locate
+        run: |
+          FILE_PATH=$(find . -name "package.json" | head -n 1 || true)
+          if [ -n "$FILE_PATH" ]; then
+            echo "Found package.json at: $FILE_PATH"
+            echo "PACKAGE_DIR=$(dirname $FILE_PATH)" >> $GITHUB_ENV
+          else
+            echo "No package.json found"
+            echo "PACKAGE_DIR=" >> $GITHUB_ENV
+          fi
 
-      - name: Install npm dependencies
-        run: npm install
+      - name: Install npm dependencies (if package.json exists)
+        if: env.PACKAGE_DIR != ''
+        run: |
+          cd $PACKAGE_DIR
+          npm install
 
       - name: Build Android App
         run: |
           cd android
           ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
