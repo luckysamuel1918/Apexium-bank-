@@ -24,8 +24,13 @@ jobs:
           java-version: 17
           distribution: temurin
 
-      - name: Install Capacitor CLI
-        run: npm install -g @capacitor/cli
+      - name: Initialize npm project
+        run: npm init -y
+
+      - name: Install Capacitor packages
+        run: |
+          npm install @capacitor/core @capacitor/cli
+          npm install @capacitor/android
 
       - name: Initialize Capacitor Project
         run: |
