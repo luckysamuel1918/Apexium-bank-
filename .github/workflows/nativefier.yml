@@ -1,6 +1,9 @@
-name: Web to Desktop App
+name: Build Electron Desktop App
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -8,54 +11,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Create Electron App
-        run: |
-          mkdir electron-app
-          cd electron-app
-          npm init -y
-          npm install electron --save-dev
+      - name: Install dependencies
+        run: npm install
 
-          # Create main Electron file
-          cat << 'EOF' > main.js
-          const { app, BrowserWindow } = require('electron');
-          const path = require('path');
+      - name: Install Wine (for Windows builds)
+        run: sudo apt-get update && sudo apt-get install -y wine64
 
-          function createWindow() {
-            const win = new BrowserWindow({
-              width: 1200,
-              height: 800,
-              icon: path.join(__dirname, 'icon.png'),
-              webPreferences: { nodeIntegration: false }
-            });
-            win.loadURL('https://bluewaveexpres.vercel.app');
-          }
+      - name: Build Electron App (Windows EXE)
+        run: npx electron-packager . BluewaveExpress --platform=win32 --arch=x64 --icon=icon.ico --out=dist --overwrite
 
-          app.whenReady().then(createWindow);
-          app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-          EOF
-
-          # Add icon
-          curl -L -o icon.png https://bluewaveexpres.vercel.app/logo.png
-          
-          # Add start script to package.json
-          npx json -I -f package.json -e 'this.main="main.js"; this.scripts={"start":"electron ."}'
-          
-      - name: Package Desktop App
-        run: |
-          cd electron-app
-          npm install electron-packager --save-dev
-          npx electron-packager . BluewaveExpress --platform=win32 --arch=x64 --out=dist --overwrite
-
-      - name: Upload Desktop Build
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: BluewaveExpress-Desktop
-          path: electron-app/dist
+          name: BluewaveExpress-Windows
+          path: dist/
