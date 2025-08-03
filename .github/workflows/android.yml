@@ -43,17 +43,26 @@ jobs:
         cd "$PACKAGE_DIR"
         npm ci
 
+    - name: Locate Android folder
+      id: android
+      run: |
+        ANDROID_DIR=$(find . -type d -name "android" | head -n 1 || true)
+        if [ -z "$ANDROID_DIR" ]; then
+          echo "❌ Android folder not found!"
+          exit 1
+        fi
+        echo "ANDROID_DIR=$ANDROID_DIR" >> $GITHUB_ENV
+        echo "✅ Found Android folder at: $ANDROID_DIR"
+
     - name: Build Android App
       run: |
-        cd android
+        cd "$ANDROID_DIR"
         ./gradlew assembleDebug --stacktrace
 
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
       with:
         name: android-debug-apk-${{ github.run_id }}
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+        path: ${{ env.ANDROID_DIR }}/app/build/outputs/apk/debug/app-debug.apk
         if-no-files-found: error
-        # include-hidden-files: true  # uncomment if necessary
-        overwrite: false
         retention-days: 7
