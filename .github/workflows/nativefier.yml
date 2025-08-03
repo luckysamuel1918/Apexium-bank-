@@ -1,0 +1,61 @@
+name: Web to Desktop App
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Create Electron App
+        run: |
+          mkdir electron-app
+          cd electron-app
+          npm init -y
+          npm install electron --save-dev
+
+          # Create main Electron file
+          cat << 'EOF' > main.js
+          const { app, BrowserWindow } = require('electron');
+          const path = require('path');
+
+          function createWindow() {
+            const win = new BrowserWindow({
+              width: 1200,
+              height: 800,
+              icon: path.join(__dirname, 'icon.png'),
+              webPreferences: { nodeIntegration: false }
+            });
+            win.loadURL('https://bluewaveexpres.vercel.app');
+          }
+
+          app.whenReady().then(createWindow);
+          app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+          EOF
+
+          # Add icon
+          curl -L -o icon.png https://bluewaveexpres.vercel.app/logo.png
+          
+          # Add start script to package.json
+          npx json -I -f package.json -e 'this.main="main.js"; this.scripts={"start":"electron ."}'
+          
+      - name: Package Desktop App
+        run: |
+          cd electron-app
+          npm install electron-packager --save-dev
+          npx electron-packager . BluewaveExpress --platform=win32 --arch=x64 --icon=icon.png --out=dist --overwrite
+
+      - name: Upload Desktop Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: BluewaveExpress-Desktop
+          path: electron-app/dist
