@@ -25,39 +25,44 @@ jobs:
     # 4️⃣ Create Capacitor Project
     - name: Create Capacitor Project
       run: |
-        mkdir apexium-app && cd apexium-app
+        mkdir apexium-app
+        cd apexium-app
         npm init -y
         npx cap init "Apexium Bank" "com.apexium.bank" --web-dir=www
         echo "<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>Apexium Bank</title></head><body><script>window.location.href='https://bluewaveexpres.vercel.app'</script></body></html>" > index.html
-        mkdir www && mv index.html www/
-        cp ../logo.png www/icon.png
+        mkdir www
+        mv index.html www/
 
-    # 5️⃣ Add Android Platform
+    # 5️⃣ Copy Logo into App
+    - name: Copy Logo into App
+      run: cp logo.png apexium-app/www/icon.png
+
+    # 6️⃣ Add Android Platform
     - name: Add Android Platform
       run: |
         cd apexium-app
         npx cap add android
 
-    # 6️⃣ Replace Default App Icon
+    # 7️⃣ Replace Android App Icon
     - name: Replace Android App Icon
       run: |
-        cp ../logo.png apexium-app/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-        cp ../logo.png apexium-app/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-        cp ../logo.png apexium-app/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-        cp ../logo.png apexium-app/android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-        cp ../logo.png apexium-app/android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+        cp logo.png apexium-app/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+        cp logo.png apexium-app/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+        cp logo.png apexium-app/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+        cp logo.png apexium-app/android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+        cp logo.png apexium-app/android/app/src/main/res/mipmap-mdpi/ic_launcher.png
 
-    # 7️⃣ Setup Android SDK
+    # 8️⃣ Setup Android SDK
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    # 8️⃣ Build APK
+    # 9️⃣ Build APK
     - name: Build APK
       run: |
         cd apexium-app/android
         ./gradlew assembleDebug
 
-    # 9️⃣ Upload APK
+    # 🔟 Upload APK
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
