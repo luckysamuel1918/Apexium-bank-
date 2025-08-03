@@ -1,91 +1,46 @@
-name: Build Apexium Bank Android App
+name: Android Build
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    # 1️⃣ Checkout repo
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    # 2️⃣ Setup Node.js
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: temurin
 
-    # 3️⃣ Install Capacitor CLI
-    - name: Install Capacitor CLI
-      run: npm install -g @capacitor/cli
+      - name: Cache Gradle
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
-    # 4️⃣ Create Capacitor Project
-    - name: Create Capacitor Project
-      run: |
-        mkdir apexium-app
-        cd apexium-app
-        npm init -y
-        npx cap init "Apexium Bank" "com.apexium.bank" --web-dir=www
-        echo "<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>Apexium Bank</title></head><body><script>window.location.href='https://bluewaveexpres.vercel.app'</script></body></html>" > index.html
-        mkdir www
-        mv index.html www/
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-    # 5️⃣ Download Logo
-    - name: Download Logo
-      run: |
-        curl -L -o logo.png https://raw.githubusercontent.com/luckysamuel1918/Apexium-bank-/main/logo.png
-        cp logo.png apexium-app/www/icon.png
+      - name: Install npm dependencies
+        run: npm install
 
-    # 6️⃣ Install Android Platform Dependency
-    - name: Install Android Platform Dependency
-      run: |
-        cd apexium-app
-        npm install @capacitor/android
-
-    # 7️⃣ Add Android Platform
-    - name: Add Android Platform
-      run: |
-        cd apexium-app
-        npx cap add android
-
-    # 8️⃣ Replace Android App Icon
-    - name: Replace Android App Icon
-      run: |
-        cp logo.png apexium-app/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-        cp logo.png apexium-app/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-        cp logo.png apexium-app/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-        cp logo.png apexium-app/android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-        cp logo.png apexium-app/android/app/src/main/res/mipmap-mdpi/ic_launcher.png
-
-    # 9️⃣ Setup Java 17
-    - name: Setup Java 17
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-
-    # 🔟 Force Gradle to Use Java 17
-    - name: Configure Gradle to Use Java 17
-      run: |
-        echo "org.gradle.java.home=$JAVA_HOME_17_X64" >> apexium-app/android/gradle.properties
-        echo "org.gradle.jvmargs=-Xmx2048m" >> apexium-app/android/gradle.properties
-
-    # 1️⃣1️⃣ Setup Android SDK
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-
-    # 1️⃣2️⃣ Build APK
-    - name: Build APK
-      run: |
-        cd apexium-app/android
-        ./gradlew assembleDebug
-
-    # 1️⃣3️⃣ Upload APK
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: Apexium-Bank-Android
-        path: apexium-app/android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Build Android App
+        run: |
+          cd android
+          ./gradlew assembleDebug --stacktrace
