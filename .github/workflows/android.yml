@@ -60,24 +60,30 @@ jobs:
         cp logo.png apexium-app/android/app/src/main/res/mipmap-hdpi/ic_launcher.png
         cp logo.png apexium-app/android/app/src/main/res/mipmap-mdpi/ic_launcher.png
 
-    # 🔧 Setup Java 17 (Fix for invalid source release error)
+    # 9️⃣ Setup Java 17
     - name: Setup Java 17
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
 
-    # 9️⃣ Setup Android SDK
+    # 🔟 Force Gradle to Use Java 17
+    - name: Configure Gradle to Use Java 17
+      run: |
+        echo "org.gradle.java.home=$JAVA_HOME_17_X64" >> apexium-app/android/gradle.properties
+        echo "org.gradle.jvmargs=-Xmx2048m" >> apexium-app/android/gradle.properties
+
+    # 1️⃣1️⃣ Setup Android SDK
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    # 🔟 Build APK
+    # 1️⃣2️⃣ Build APK
     - name: Build APK
       run: |
         cd apexium-app/android
         ./gradlew assembleDebug
 
-    # 1️⃣1️⃣ Upload APK
+    # 1️⃣3️⃣ Upload APK
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
