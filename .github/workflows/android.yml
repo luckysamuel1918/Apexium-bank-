@@ -3,7 +3,7 @@ name: Web to APK Build
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:  # Allows manual trigger from Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
@@ -29,7 +29,7 @@ jobs:
 
       - name: Initialize Capacitor Project
         run: |
-          npx cap init "BluewaveExpress" "com.bluewave.express" --web-dir=webapp --npm-client=npm
+          npx cap init "BluewaveExpress" "com.bluewave.express" --web-dir=webapp
           mkdir -p webapp
           echo '<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><script>location.href="https://bluewaveexpres.vercel.app"</script></body></html>' > webapp/index.html
 
