@@ -1,8 +1,6 @@
 name: Web to APK Build
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -11,57 +9,44 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: 18
 
-      - name: Setup Java (JDK 17 for Android)
-        uses: actions/setup-java@v3
-        with:
-          java-version: 17
-          distribution: temurin
+      - name: Install Capacitor CLI
+        run: npm install -g @capacitor/cli
 
-      - name: Initialize npm project
-        run: npm init -y
+      - name: Install dependencies
+        run: npm install
 
-      - name: Install Capacitor packages
-        run: |
-          npm install @capacitor/core @capacitor/cli
-          npm install @capacitor/android
-
-      - name: Initialize Capacitor Project
-        run: |
-          npx cap init "BluewaveExpress" "com.bluewave.express" --web-dir=webapp
-          mkdir -p webapp
-          echo '<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1"></head><body><script>location.href="https://bluewaveexpres.vercel.app"</script></body></html>' > webapp/index.html
+      - name: Init Capacitor
+        run: npx cap init "BluewaveExpress" "com.bluewave.express" --web-dir=webapp
 
       - name: Add Android Platform
         run: npx cap add android
 
-      - name: Replace App Icon
+      - name: Force Java 17 in Gradle
         run: |
-          sudo apt-get install -y imagemagick
-          cp logo.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
-          for size in mdpi hdpi xhdpi xxhdpi; do
-            convert logo.png -resize 48x48 android/app/src/main/res/mipmap-$size/ic_launcher.png
-          done
-          convert logo.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          sed -i 's/sourceCompatibility JavaVersion.*/sourceCompatibility JavaVersion.VERSION_17/' android/app/build.gradle
+          sed -i 's/targetCompatibility JavaVersion.*/targetCompatibility JavaVersion.VERSION_17/' android/app/build.gradle
+          grep -q "kotlinOptions" android/app/build.gradle || sed -i '/compileOptions {/a \    kotlinOptions {\n        jvmTarget = "17"\n    }' android/app/build.gradle
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
 
       - name: Build Android APK
         run: |
           cd android
-          export JAVA_HOME=$JAVA_HOME_17_X64
-          echo "✅ Java version in use:"
-          java -version
-          chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug
 
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
         with:
           name: BluewaveExpress-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 7
