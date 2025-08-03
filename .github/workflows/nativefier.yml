@@ -52,7 +52,7 @@ jobs:
         run: |
           cd electron-app
           npm install electron-packager --save-dev
-          npx electron-packager . BluewaveExpress --platform=win32 --arch=x64 --icon=icon.png --out=dist --overwrite
+          npx electron-packager . BluewaveExpress --platform=win32 --arch=x64 --out=dist --overwrite
 
       - name: Upload Desktop Build
         uses: actions/upload-artifact@v4
