@@ -1,0 +1,65 @@
+name: Build Apexium Bank Android App
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1️⃣ Checkout repo
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 2️⃣ Setup Node.js
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    # 3️⃣ Install Capacitor CLI
+    - name: Install Capacitor CLI
+      run: npm install -g @capacitor/cli
+
+    # 4️⃣ Create Capacitor Project
+    - name: Create Capacitor Project
+      run: |
+        mkdir apexium-app && cd apexium-app
+        npm init -y
+        npx cap init "Apexium Bank" "com.apexium.bank" --web-dir=www
+        echo "<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width, initial-scale=1'><title>Apexium Bank</title></head><body><script>window.location.href='https://bluewaveexpres.vercel.app'</script></body></html>" > index.html
+        mkdir www && mv index.html www/
+        cp ../logo.png www/icon.png
+
+    # 5️⃣ Add Android Platform
+    - name: Add Android Platform
+      run: |
+        cd apexium-app
+        npx cap add android
+
+    # 6️⃣ Replace Default App Icon
+    - name: Replace Android App Icon
+      run: |
+        cp ../logo.png apexium-app/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+        cp ../logo.png apexium-app/android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+        cp ../logo.png apexium-app/android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+        cp ../logo.png apexium-app/android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+        cp ../logo.png apexium-app/android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+
+    # 7️⃣ Setup Android SDK
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
+    # 8️⃣ Build APK
+    - name: Build APK
+      run: |
+        cd apexium-app/android
+        ./gradlew assembleDebug
+
+    # 9️⃣ Upload APK
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: Apexium-Bank-Android
+        path: apexium-app/android/app/build/outputs/apk/debug/app-debug.apk
