@@ -24,8 +24,10 @@ jobs:
       run: |
         echo "📂 Repository structure:"
         ls -R
-        echo "🔍 Searching for Gradle files..."
+        echo "🔍 Searching for Gradle build files..."
         find . -name "build.gradle" -o -name "build.gradle.kts" || true
+        echo "🔍 Searching for gradlew..."
+        find . -name "gradlew" || true
 
     - name: Cache Gradle
       uses: actions/cache@v4
@@ -40,17 +42,18 @@ jobs:
     - name: Locate Android folder dynamically
       id: android
       run: |
-        ANDROID_DIR=$(find . -type d -name "android" | head -n 1 || true)
+        ANDROID_DIR=$(find . -type f -name "gradlew" | xargs -n1 dirname | head -n 1 || true)
         if [ -z "$ANDROID_DIR" ]; then
-          echo "❌ Android folder not found! Check debug output above."
+          echo "❌ Android project not found! Check repo structure above."
           exit 1
         fi
         echo "ANDROID_DIR=$ANDROID_DIR" >> $GITHUB_ENV
-        echo "✅ Found Android folder at: $ANDROID_DIR"
+        echo "✅ Found Android project at: $ANDROID_DIR"
 
     - name: Build Android App
       run: |
         cd "$ANDROID_DIR"
+        chmod +x gradlew
         ./gradlew assembleDebug --stacktrace
 
     - name: Upload Debug APK
