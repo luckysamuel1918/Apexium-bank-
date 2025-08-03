@@ -28,17 +28,17 @@ jobs:
       - name: Add Android Platform
         run: npx cap add android
 
-      - name: Force Java 17 in Gradle
-        run: |
-          sed -i 's/sourceCompatibility JavaVersion.*/sourceCompatibility JavaVersion.VERSION_17/' android/app/build.gradle
-          sed -i 's/targetCompatibility JavaVersion.*/targetCompatibility JavaVersion.VERSION_17/' android/app/build.gradle
-          grep -q "kotlinOptions" android/app/build.gradle || sed -i '/compileOptions {/a \    kotlinOptions {\n        jvmTarget = "17"\n    }' android/app/build.gradle
-
-      - name: Setup Java 17
+      - name: Setup Java 21
         uses: actions/setup-java@v3
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 21
+
+      - name: Force Java 21 in Gradle
+        run: |
+          sed -i 's/sourceCompatibility JavaVersion.*/sourceCompatibility JavaVersion.VERSION_21/' android/app/build.gradle
+          sed -i 's/targetCompatibility JavaVersion.*/targetCompatibility JavaVersion.VERSION_21/' android/app/build.gradle
+          grep -q "kotlinOptions" android/app/build.gradle || sed -i '/compileOptions {/a \    kotlinOptions {\n        jvmTarget = "21"\n    }' android/app/build.gradle
 
       - name: Build Android APK
         run: |
