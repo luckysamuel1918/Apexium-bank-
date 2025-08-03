@@ -33,17 +33,25 @@ jobs:
         mkdir www
         mv index.html www/
 
-    # 5️⃣ Copy Logo into App
-    - name: Copy Logo into App
-      run: cp logo.png apexium-app/www/icon.png
+    # 5️⃣ Download Logo
+    - name: Download Logo
+      run: |
+        curl -L -o logo.png https://raw.githubusercontent.com/<YOUR_USERNAME>/<YOUR_REPO_NAME>/main/logo.png
+        cp logo.png apexium-app/www/icon.png
 
-    # 6️⃣ Add Android Platform
+    # 6️⃣ Install Android Platform Dependency
+    - name: Install Android Platform Dependency
+      run: |
+        cd apexium-app
+        npm install @capacitor/android
+
+    # 7️⃣ Add Android Platform
     - name: Add Android Platform
       run: |
         cd apexium-app
         npx cap add android
 
-    # 7️⃣ Replace Android App Icon
+    # 8️⃣ Replace Android App Icon
     - name: Replace Android App Icon
       run: |
         cp logo.png apexium-app/android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
@@ -52,17 +60,17 @@ jobs:
         cp logo.png apexium-app/android/app/src/main/res/mipmap-hdpi/ic_launcher.png
         cp logo.png apexium-app/android/app/src/main/res/mipmap-mdpi/ic_launcher.png
 
-    # 8️⃣ Setup Android SDK
+    # 9️⃣ Setup Android SDK
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    # 9️⃣ Build APK
+    # 🔟 Build APK
     - name: Build APK
       run: |
         cd apexium-app/android
         ./gradlew assembleDebug
 
-    # 🔟 Upload APK
+    # 1️⃣1️⃣ Upload APK
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
